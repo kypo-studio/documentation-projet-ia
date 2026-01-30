@@ -1,0 +1,162 @@
+dataset:
+  nom: "Jobs & Salaries Dataset"
+  version: "1.0"
+  domaine: "emploi / ressources humaines / économie du travail"
+  date_creation: "2017-2018"
+  description: >
+    Dataset d'offres d'emploi contenant des informations sur les postes,
+    les entreprises et les salaires associés. Utilisé pour l'analyse
+    exploratoire et la prédiction du salaire moyen.
+  usage_prevu:
+    - analyse exploratoire des salaires
+    - visualisation statistique
+    - apprentissage automatique (régression)
+    - comparaison de modèles de prédiction
+
+provenance:
+  source: "Kaggle"
+  nom_exact_source: "/kaggle/input/jobs-dataset-from-glassdoor/eda_data.csv"
+  methode_collecte: "Kaggle"
+  periode_couverte: "2017-2019"
+  type_donnees: "données tabulaires issues d'offres d'emploi"
+
+format:
+  type_fichier: "CSV (chargé via pandas)"
+  environnement:
+    - Kaggle Notebook
+    - Python 3
+  taille_dataset:
+    lignes: 741
+    colonnes: 12
+
+colonnes:
+  - nom: "job_simp"
+    type: "catégoriel"
+    unite: "N/A"
+    intervalle: "catégories textuelles"
+    description: "Intitulé simplifié du poste"
+
+  - nom: "rating"
+    type: "numérique (float)"
+    unite: "score"
+    intervalle: "0 à 5"
+    description: "Note moyenne de l'entreprise"
+
+  - nom: "company_name"
+    type: "catégoriel"
+    unite: "N/A"
+    intervalle: "texte"
+    description: "Nom de l'entreprise (nettoyé des suffixes numériques)"
+
+  - nom: "size"
+    type: "catégoriel"
+    unite: "N/A"
+    intervalle: "classes de taille d'entreprise"
+    description: "Nombre d'employés de l'entreprise"
+
+  - nom: "founded"
+    type: "numérique (int)"
+    unite: "année"
+    intervalle: "1744 à 2019"
+    description: "Année de création de l'entreprise"
+
+  - nom: "industry"
+    type: "catégoriel"
+    unite: "N/A"
+    intervalle: "catégories industrielles"
+    description: "Industrie principale de l'entreprise"
+
+  - nom: "sector"
+    type: "catégoriel"
+    unite: "N/A"
+    intervalle: "catégories de secteurs"
+    description: "Secteur économique"
+
+  - nom: "min_salary"
+    type: "numérique (int/float)"
+    unite: "k$"
+    intervalle: "53k"
+    description: "Salaire minimum proposé (/an)"
+
+  - nom: "avg_salary"
+    type: "numérique (int/float)"
+    unite: "k$"
+    intervalle: "90k"
+    description: "Salaire moyen proposé (variable cible) (/an)"
+
+  - nom: "max_salary"
+    type: "numérique (int/float)"
+    unite: "k$"
+    intervalle: "160k"
+    description: "Salaire maximum proposé (/an)"
+
+  - nom: "age"
+    type: "numérique (int)"
+    unite: "années"
+    intervalle: "0 à 200 (bins utilisés)"
+    description: "Âge de l'entreprise"
+
+  - nom: "type_of_ownership"
+    type: "catégoriel"
+    unite: "N/A"
+    intervalle: "types juridiques"
+    description: "Type de propriété de l'entreprise"
+
+qualite_donnees:
+  valeurs_manquantes:
+    presence: true
+    traitement:
+      numeriques: "remplacement par la médiane"
+      categorielles: "remplacement par 'unknown'"
+
+  valeurs_aberrantes:
+    presence: "valeurs -1 dans plusieurs colonnes numériques"
+    traitement: "remplacées par NaN"
+
+  doublons:
+    presence: "non détecté"
+    traitement: "aucun"
+
+  biais_potentiels:
+    - sur-représentation de certains secteurs
+    - biais géographique possible
+    - salaires exprimés en k$ (probablement marché US)
+
+statistiques:
+  descriptives:
+    moyenne:
+      avg_salary: "(calculée mais valeur non fournie)"
+      rating: "(calculée mais valeur non fournie)"
+      age: "(calculée mais valeur non fournie)"
+    mediane:
+      avg_salary: "(calculée mais valeur non fournie)"
+      rating: "(calculée mais valeur non fournie)"
+    minimum:
+      avg_salary: "(calculée mais valeur non fournie)"
+    maximum:
+      avg_salary: "(calculée mais valeur non fournie)"
+
+  correlations:
+    variables_etudiees:
+      - rating
+      - min_salary
+      - avg_salary
+      - max_salary
+      - age
+    methode: "corrélation de Pearson"
+    visualisation: "heatmap seaborn"
+
+preparation_ml:
+  encodage:
+    methode: "Label Encoding"
+    colonnes_concernees: "toutes les colonnes catégorielles sauf company_name"
+  normalisation: "StandardScaler"
+  variable_cible: "avg_salary"
+  split_train_test:
+    test_size: 0.2
+    random_state: 42
+
+remarques:
+  - Dataset prêt pour des tâches de régression supervisée
+  - Forte performance observée avec Random Forest et Gradient Boosting
+  - Interprétation prudente requise en raison des encodages catégoriels simples

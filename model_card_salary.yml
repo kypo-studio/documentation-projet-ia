@@ -1,0 +1,224 @@
+# DOCUMENTATION PROJET ML - PRÉDICTION SALAIRE
+metadata:
+  projet: "Prédiction Salaires et Industries"
+  date_developpement: "Janvier 2024"
+  auteur: "Data Science Team"
+  version: "1.0"
+  objectif: "Prédire avg_salary à partir des caractéristiques d'emplois"
+
+# LINEAGE DES DONNÉES
+
+lineage:
+  source:
+    fichier: "/kaggle/input/jobs-d"
+    format: "CSV"
+    description: "Dataset offres d'emploi secteur technologique avec salaires"
+    taille_initiale: "742 lignes"
+
+  etapes_transformation:
+    etape_1_selection:
+      date: "2024"
+      action: "Sélection de 12 colonnes pertinentes"
+      colonnes_conservees:
+        - job_simp
+        - Rating
+        - Company Name
+        - Size
+        - Founded
+        - Industry
+        - Sector
+        - min_salary
+        - avg_salary
+        - max_salary
+        - age
+        - Type of ownership
+      lignes_resultantes: 742
+
+    etape_2_renommage:
+      action: "Normalisation des noms de colonnes"
+      methode: "df.columns.str.lower().str.replace(' ', '_')"
+      exemple: "Company Name → company_name"
+
+    etape_3_nettoyage_basique:
+      operations:
+        suppression_ratings_company_name:
+          regex: "\\n\\d+\\.\\d+"
+          exemple: "Google\\n4.5 → Google"
+        remplacement_valeurs_invalides:
+          - "'na' → NaN"
+          - "-1 → NaN"
+
+    etape_4_imputation_valeurs_manquantes:
+      colonnes_numeriques:
+        methode: "Médiane"
+        colonnes: [rating, founded, min_salary, avg_salary, max_salary, age]
+      colonnes_categorielles:
+        methode: "Remplacement par 'unknown'"
+        colonnes:
+          [job_simp, company_name, size, industry, sector, type_of_ownership]
+      resultat: "0 valeurs manquantes après traitement"
+
+    etape_5_encodage_categoriel:
+      methode: "LabelEncoder (sklearn.preprocessing)"
+      colonnes_encodees:
+        - job_simp → job_simp_encoded
+        - size → size_encoded
+        - industry → industry_encoded
+        - sector → sector_encoded
+        - type_of_ownership → type_of_ownership_encoded
+      colonne_exclue:
+        nom: "company_name"
+        raison: "Trop de catégories uniques"
+      nombre_encodeurs_sauvegardes: 5
+
+    etape_6_normalisation:
+      methode: "StandardScaler (sklearn.preprocessing)"
+      formule: "z = (x - μ) / σ"
+      application: "Sur toutes les features numériques"
+      features_normalisees: 9
+
+  dataset_final:
+    nombre_lignes: 742
+    nombre_features: 9
+    features_liste:
+      - rating
+      - founded
+      - min_salary
+      - max_salary
+      - age
+      - job_simp_encoded
+      - size_encoded
+      - sector_encoded
+      - type_of_ownership_encoded
+
+    split_train_test:
+      methode: "train_test_split"
+      ratio: "80% train / 20% test"
+      random_state: 42
+      taille_train: 593
+      taille_test: 149
+
+# MODEL CARD 1 : PRÉDICTION AVG_SALARY
+
+model_card_avg_salary:
+  informations_generales:
+    nom_modele: "SalaryPredictor_RandomForest_v1.0"
+    variable_cible: "avg_salary"
+    type_probleme: "Régression"
+    description: "Prédiction du salaire moyen d'une offre d'emploi tech"
+    unite_prediction: "Milliers de dollars US (k$)"
+    date_developpement: "Janvier 2024"
+    version: "1.0"
+    fichier_sauve: "best_model_Random_Forest.pkl"
+
+  architecture:
+    algorithme: "Random Forest Regressor"
+    librairie: "scikit-learn"
+    version_sklearn: ">=1.0"
+    type: "Ensemble Learning - Bagging"
+    principe: "Agrégation de multiples arbres de décision entraînés sur des sous-échantillons"
+    nombre_arbres: 100
+    prediction_finale: "Moyenne des prédictions de tous les arbres"
+
+  donnees_entrainement:
+    dataset:
+      source: "Jobs dataset - secteur technologique"
+      periode: "2024"
+      taille_totale: 742
+      split:
+        train: "593 observations (80%)"
+        test: "149 observations (20%)"
+        random_state: 42
+
+    features_utilisees:
+      nombre: 10
+      liste:
+        rating: "Note de l'entreprise (0-5)"
+        founded: "Année de création"
+        min_salary: "Salaire minimum (k$)"
+        max_salary: "Salaire maximum (k$)"
+        age: "Âge de l'entreprise"
+        job_simp_encoded: "Type de poste (encodé)"
+        size_encoded: "Taille entreprise (encodé)"
+        industry_encoded: "Industrie (encodé)"
+        sector_encoded: "Secteur (encodé)"
+        type_of_ownership_encoded: "Type de propriété (encodé)"
+
+      feature_importance_top3:
+        1: "max_salary: ~85%"
+        2: "min_salary: ~12%"
+        3: "age: ~1%"
+
+    preprocessing:
+      encodage: "LabelEncoder pour 5 variables catégorielles"
+      normalisation: "StandardScaler (mean=0, std=1)"
+      imputation: "Médiane pour numériques, 'unknown' pour catégorielles"
+
+  hyperparametres:
+    n_estimators: 100
+    criterion: "squared_error"
+    max_depth: null
+    min_samples_split: 2
+    min_samples_leaf: 1
+    max_features: 1.0
+    bootstrap: true
+    oob_score: false
+    random_state: 42
+    n_jobs: null
+    verbose: 0
+    warm_start: false
+
+  recherche_hyperparametres:
+    methode: "Aucune"
+    strategie: "Utilisation des paramètres par défaut"
+    temps_entrainement: "Quelques secondes"
+
+  metriques_performance:
+    train:
+      r2_score: 0.9997
+      rmse: 0.82
+      variance_expliquee: "99.97%"
+
+    test:
+      r2_score: 0.9970
+      rmse: 2.70
+      mae: 1.86
+      mape: "1.52%"
+      variance_expliquee: "99.70%"
+      erreur_moyenne_absolue: "1 860 $ d'écart en moyenne"
+
+    analyse_overfitting:
+      overfitting_score: 0.0027
+      ecart_r2_train_test: "0.27%"
+
+# DOCUMENTATION TECHNIQUE
+documentation_technique:
+  environnement:
+    python_version: ">=3.8"
+    librairies:
+      pandas: "Manipulation données"
+      scikit-learn: "Modèles ML et preprocessing"
+      numpy: "Calculs numériques"
+      matplotlib: "Visualisations"
+      seaborn: "Graphiques statistiques"
+      joblib: "Sérialisation modèles"
+
+  structure_fichiers:
+    notebooks:
+      notebook_1: "notebookf7126e31ff (1).ipynb - Prédiction avg_salary"
+      notebook_2: "dddnotebookf7126e31ff.ipynb - Prédiction industry"
+
+  reproductibilite:
+    random_state: 42
+    train_test_split: "Identique pour les 2 modèles"
+    preprocessing: "Identique pour les 2 modèles"
+
+# RÉSUMÉ
+
+resume:
+  industry:
+    r2_test: 0.7658
+    rmse_test: 7.10
+    mae_test: 3.62
+    mape_test: "inf"
+    overfitting: 0.1960
